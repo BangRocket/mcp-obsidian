@@ -3,17 +3,24 @@ import urllib.parse
 import os
 from typing import Any
 
+def _default_port() -> int | None:
+    raw = os.getenv('OBSIDIAN_PORT', '27124')
+    if raw is None or raw.strip() == '':
+        return None
+    return int(raw)
+
+
 class Obsidian():
     def __init__(
-            self, 
+            self,
             api_key: str,
             protocol: str = os.getenv('OBSIDIAN_PROTOCOL', 'https').lower(),
             host: str = str(os.getenv('OBSIDIAN_HOST', '127.0.0.1')),
-            port: int = int(os.getenv('OBSIDIAN_PORT', '27124')),
+            port: int | None = _default_port(),
             verify_ssl: bool = False,
         ):
         self.api_key = api_key
-        
+
         if protocol == 'http':
             self.protocol = 'http'
         else:
@@ -25,6 +32,8 @@ class Obsidian():
         self.timeout = (3, 6)
 
     def get_base_url(self) -> str:
+        if self.port is None:
+            return f'{self.protocol}://{self.host}'
         return f'{self.protocol}://{self.host}:{self.port}'
     
     def _get_headers(self) -> dict:
